@@ -1,0 +1,88 @@
+# Topic groups shown on the public site. Everyone who visits sees these, so keep them general.
+# Your personal list lives in your browser instead: use the star on any docket.
+# Each [Group name] starts a group; list docket numbers under it.
+# Optional short name after a |, shown as the card's title:   26-50 | Boston Gas rate case
+# A * matches anything: 26-GSEP-* covers 26-GSEP-01 through 26-GSEP-06.
+# A docket can appear in more than one group.
+# Edit this file on GitHub (pencil icon), then "Commit changes". The site updates on the next run.
+
+[Rates and PBR]
+26-50 | Boston Gas rate case and PBR
+26-64 | PBR revenue adjustment (Eversource)
+26-84 | PBR adjustment (National Grid electric)
+26-85 | PBR adjustment (National Grid gas)
+26-65 | EV program factors (Eversource)
+26-81 | Basic service rates (Unitil)
+26-BSF-A2 | Basic service (Unitil)
+
+[Future of gas]
+20-80 | Future of Gas
+25-40 | Climate Compliance Plan (Berkshire)
+25-41 | Climate Compliance Plan (National Grid)
+25-42 | Climate Compliance Plan (Unitil)
+25-43 | Climate Compliance Plan (Liberty)
+25-44* | Climate Compliance Plan (Eversource)
+25-45* | Climate Compliance Plan (Eversource)
+24-194 | Targeted electrification demo (Boston Gas)
+26-34 | Targeted electrification demo (Unitil)
+26-35 | Targeted electrification demo (Berkshire)
+26-36 | Targeted electrification demo (Liberty)
+26-37 | Targeted electrification demo (Eversource)
+26-38 | Targeted electrification demo (Eversource)
+25-86 | Networked geothermal framework and rate (Eversource)
+26-83 | Framingham networked geothermal expansion
+26-94 | Long-range forecast and supply plan (Eversource Gas)
+26-160 | Long-range forecast and supply plan (Berkshire)
+
+[GSEP 2026]
+26-GSEP-*
+
+[Affordability and rate design]
+25-200 | Affordability: bill redesign and delivery charges
+24-15 | Energy burden: low-income discount tiers
+26-62 | Time-varying rates
+25-08 | Seasonal heat pump rates
+26-71 | Residential seasonal heat pump rate (National Grid)
+24-53 | Service quality standards
+
+[Storage, interconnection, and DERs]
+23-115 | Storage operating parameters tariff (National Grid)
+23-117 | Storage operating parameters tariff (Unitil)
+23-125 | Storage operating parameters tariff (Eversource)
+25-48 | DG interconnection tariff revisions
+25-117 | Net crediting for net metering and solar
+25-175 | Revised SMART tariff
+26-106 | Storage demonstration project (National Grid)
+26-75 | Section 83E second round
+26-87 | 83E storage contracts (Eversource)
+26-88 | 83E storage contracts (National Grid)
+26-89 | 83E storage contracts (Unitil)
+
+[Grid planning, grid mod, and data]
+25-20 | Long-term system planning
+25-69 | Advanced transmission technologies
+24-10 | ESMP (Eversource)
+24-11 | ESMP (National Grid)
+24-12 | ESMP (Unitil)
+25-ESMP-* | ESMP reports
+26-ESMP-* | ESMP reports
+26-42 | AMI factors (National Grid)
+26-43 | Grid mod factors (National Grid)
+26-44 | AMI interval data for ISO-NE load settlement
+26-91 | Grid mod 2022-2025 prudence review (Eversource)
+26-92 | Grid mod 2022-2025 prudence review (National Grid)
+26-93 | Grid mod 2022-2025 prudence review (Unitil)
+26-20 | Centralized data repository (Eversource)
+26-21 | Centralized data repository (National Grid)
+26-22 | Centralized data repository (Unitil)
+
+[EVs]
+25-188 | EV infrastructure programs (Eversource)
+25-189 | EV infrastructure programs (National Grid)
+26-65 | EV program factors (Eversource)
+
+[Energy efficiency]
+25-120 | Three-year EE plan reports (Berkshire)
+25-129 | Three-year EE plan reports (Eversource)
+26-63 | EE and decarbonization plan
+25-47

@@ -1,0 +1,5 @@
+# News feeds (RSS). One web address per line. Only headlines and links are shown.
+# These are Google News searches; change the words after q= to change the search.
+https://news.google.com/rss/search?q=%22Department+of+Public+Utilities%22+Massachusetts&hl=en-US&gl=US&ceid=US:en
+https://news.google.com/rss/search?q=Eversource+Massachusetts+DPU&hl=en-US&gl=US&ceid=US:en
+https://news.google.com/rss/search?q=%22National+Grid%22+Massachusetts+DPU&hl=en-US&gl=US&ceid=US:en
