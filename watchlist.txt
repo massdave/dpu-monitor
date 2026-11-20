@@ -6,7 +6,7 @@
 # A docket can appear in more than one group.
 # Edit this file on GitHub (pencil icon), then "Commit changes". The site updates on the next run.
 
-[Rates and PBR]
+[Rates, PBR, and affordability]
 26-50 | Boston Gas rate case and PBR
 26-64 | PBR revenue adjustment (Eversource)
 26-84 | PBR adjustment (National Grid electric)
@@ -14,6 +14,12 @@
 26-65 | EV program factors (Eversource)
 26-81 | Basic service rates (Unitil)
 26-BSF-A2 | Basic service (Unitil)
+25-200 | Affordability: bill redesign and delivery charges
+24-15 | Energy burden: low-income discount tiers
+26-62 | Time-varying rates
+25-08 | Seasonal heat pump rates
+26-71 | Residential seasonal heat pump rate (National Grid)
+24-53 | Service quality standards
 
 [Future of gas]
 20-80 | Future of Gas
@@ -36,14 +42,6 @@
 
 [GSEP 2026]
 26-GSEP-*
-
-[Affordability and rate design]
-25-200 | Affordability: bill redesign and delivery charges
-24-15 | Energy burden: low-income discount tiers
-26-62 | Time-varying rates
-25-08 | Seasonal heat pump rates
-26-71 | Residential seasonal heat pump rate (National Grid)
-24-53 | Service quality standards
 
 [Storage, interconnection, and DERs]
 23-115 | Storage operating parameters tariff (National Grid)

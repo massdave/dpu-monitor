@@ -227,7 +227,8 @@ def milestones(p):
 
 
 ROUTINE = re.compile(r"intervene|intervention|pro hac vice|appearance|retention of experts|extension of time|"
-                     r"limited participant|protective treatment|confidential", re.I)
+                     r"limited participant|protective treatment|confidential|proof of publication|"
+                     r"return of service|affidavit of (service|publication)", re.I)
 RANGED = {"Hearing transcript", "Initial briefs", "Reply briefs", "Briefs", "Compliance filing"}
 
 
@@ -282,6 +283,8 @@ def recent_events(did, p, since):
         if f["date"] < since:
             break
         c = category(f)
+        if c in ("approval", "notice") and ROUTINE.search(f["title"]):
+            continue                                   # procedural items stay on the docket page
         if c and c not in ("assignment", "dpu"):      # routine DPU items (e.g. its information requests) stay on the docket page
             ev.append({"date": f["date"], "cat": c, "id": did, "number": p["number"], "type": f["type"],
                        "filer": f["filer"], "title": f["title"][:300],
