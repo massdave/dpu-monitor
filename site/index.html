@@ -136,7 +136,8 @@ table.list th { text-align: left; font-size: 12px; color: var(--muted); font-wei
 table.list td { padding: 9px 12px; border-top: 1px solid var(--rule); vertical-align: top; font-size: 14px; }
 table.list td.t { font-family: var(--serif); font-size: 15px; }
 .wrapx { overflow-x: auto; }
-.news li { margin: 8px 0; }
+.newslist { list-style: none; margin: 0; padding: 0; columns: 2 360px; column-gap: 28px; }
+.newslist li { break-inside: avoid; padding: 6px 0; border-top: 1px solid var(--rule); font-size: 14px; line-height: 1.35; }
 .banner { background: var(--surface); border: 1px solid var(--rule); border-left: 3px solid var(--new); border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 14px; }
 .empty { color: var(--muted); padding: 14px 16px; }
 .hide { display: none !important; }
@@ -272,6 +273,11 @@ async function viewHome() {
   const m = D.meta;
   let h = "";
   if (!m.seed_done) h += `<div class="banner"><b>Still building.</b> The first runs read the whole File Room a few thousand dockets at a time. ${m.dockets || 0} dockets so far; this finishes on its own within about a day.</div>`;
+  if (D.news.length) h += `<h2 style="margin-top:6px">In the news <small>headlines and links only</small></h2>
+    <div class="lbox"><ul class="newslist">${D.news.slice(0, 6).map(n =>
+      `<li><a href="${esc(n.link)}" target="_blank" rel="noopener">${esc(n.title)}</a> <span class="small muted">${esc(n.source)} · ${md(n.date)}</span></li>`).join("")}</ul>
+      ${D.news.length > 6 ? `<details><summary class="small" style="cursor:pointer;margin-top:6px">${D.news.length - 6} more</summary><ul class="newslist">${D.news.slice(6, 40).map(n =>
+        `<li><a href="${esc(n.link)}" target="_blank" rel="noopener">${esc(n.title)}</a> <span class="small muted">${esc(n.source)} · ${md(n.date)}</span></li>`).join("")}</ul></details>` : ""}</div>`;
   h += latestBlock();
   const stars = getStars();
   if (gsel === null) gsel = stars.length ? -1 : 0;
@@ -288,8 +294,6 @@ async function viewHome() {
   h += `<h2>DPU activity <small>orders, notices, hearing officer memos, approvals, appeals · <a href="#activity">see all</a></small></h2>${feedList(recentFeed)}`;
   const nd = D.feed.filter(e => e.cat === "new").slice(0, 12);
   if (nd.length) h += `<h2>New dockets <small><a href="#activity/new">see all</a></small></h2>${feedList(nd)}`;
-  if (D.news.length) h += `<h2>In the news <small>headlines and links only</small></h2><ul class="news">${D.news.slice(0, 12).map(n =>
-    `<li><a href="${esc(n.link)}" target="_blank" rel="noopener">${esc(n.title)}</a> <span class="small muted">${esc(n.source)} · ${md(n.date)}</span></li>`).join("")}</ul>`;
   $("#main").innerHTML = h;
   document.querySelectorAll("[data-g]").forEach(b => b.onclick = () => { gsel = +b.dataset.g; viewHome(); });
   wireStars($("#main"), () => { if (gsel === -1) viewHome(); });
