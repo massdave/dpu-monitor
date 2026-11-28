@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DPU Monitor</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+<style>
+:root {
+  color-scheme: light;
+  --bg: #F3F5F8; --surface: #FFFFFF; --raised: #F8FAFC;
+  --ink: #142030; --muted: #5A6778; --faint: #8B97A6; --rule: #DCE2EA;
+  --accent: #1D4E89; --accent-ink: #FFFFFF;
+  --tab: #E9D59C; --tab-ink: #3A2E0C; --tab-edge: #C8AE66;
+  --order: #1D4E89; --notice: #6B4FA0; --memo: #2F6F6A; --approval: #4C7A2A; --appeal: #B3261E; --new: #A15C00; --dpu: #5A6778;
+  --serif: Charter, "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #0E1621; --surface: #15202D; --raised: #1A2735;
+    --ink: #E7ECF2; --muted: #A2AEBD; --faint: #6F7C8C; --rule: #263445;
+    --accent: #8DB8EE; --accent-ink: #0B1420;
+    --tab: #5C4C1E; --tab-ink: #F7EBC3; --tab-edge: #7D6830;
+    --order: #8DB8EE; --notice: #B9A2E6; --memo: #7CC7BE; --approval: #A6D07D; --appeal: #F28B86; --new: #F0B35E; --dpu: #A2AEBD;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--sans); }
+a { color: var(--accent); }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+main:focus { outline: none; }
+
+header.top { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--rule); }
+.topin { max-width: 1240px; margin: 0 auto; padding: 12px 24px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+.brand { font-family: var(--serif); font-weight: 700; font-size: 21px; text-decoration: none; color: var(--ink); white-space: nowrap; }
+.brand span { color: var(--faint); font: 13px var(--sans); margin-left: 8px; }
+nav.links { display: flex; gap: 4px; }
+nav.links a { text-decoration: none; color: var(--muted); padding: 5px 10px; border-radius: 6px; }
+nav.links a.on { color: var(--ink); background: var(--surface); box-shadow: inset 0 -2px 0 var(--accent); }
+.search { flex: 1; min-width: 220px; display: flex; }
+.search input { width: 100%; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 8px 12px; }
+
+main { max-width: 1240px; margin: 0 auto; padding: 22px 24px 70px; }
+h1 { font-family: var(--serif); font-size: 26px; line-height: 1.25; margin: 0 0 6px; }
+h2 { font-family: var(--serif); font-size: 20px; margin: 34px 0 12px; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+h2 small { font: 13px var(--sans); color: var(--muted); }
+.muted { color: var(--muted); } .small { font-size: 13px; }
+
+.tab { display: inline-block; font-family: var(--serif); font-weight: 700; font-variant-numeric: tabular-nums; background: var(--tab);
+  color: var(--tab-ink); border: 1px solid var(--tab-edge); border-bottom-width: 3px; border-radius: 7px 7px 2px 2px;
+  padding: 0 8px; text-decoration: none; white-space: nowrap; font-size: 14px; line-height: 1.6; }
+.tab.big { font-size: 24px; padding: 2px 14px 0; border-radius: 10px 10px 3px 3px; }
+
+.cat { display: inline-block; font-size: 11.5px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; white-space: nowrap; }
+.cat.order { color: var(--order); } .cat.notice { color: var(--notice); } .cat.memo { color: var(--memo); }
+.cat.approval { color: var(--approval); } .cat.appeal { color: var(--appeal); } .cat.new { color: var(--new); } .cat.dpu { color: var(--dpu); }
+
+/* Latest strip */
+.latest { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.lbox { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 12px 14px; }
+.lbox h3 { margin: 0 0 6px; font-size: 13px; display: flex; justify-content: space-between; }
+.lbox ul { list-style: none; margin: 0; padding: 0; }
+.lbox li { padding: 6px 0; border-top: 1px solid var(--rule); font-size: 14px; line-height: 1.35; }
+.lbox li:first-child { border-top: 0; }
+.lbox .more { font-size: 13px; margin-top: 6px; display: inline-block; }
+
+/* Watchlist cards */
+.groups { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.chip { border: 1px solid var(--rule); background: var(--surface); border-radius: 999px; padding: 4px 12px; cursor: pointer; font-size: 14px; }
+.chip.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.chip .n { opacity: .7; margin-left: 4px; font-size: 12px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-top: 3px solid var(--tab-edge); border-radius: 10px; padding: 16px 18px 12px; display: flex; flex-direction: column; }
+.card .hd { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.card .meta { font-size: 12px; color: var(--muted); text-align: right; }
+.card h3 { font-family: var(--serif); font-size: 17px; line-height: 1.3; margin: 10px 0 8px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.card h3 a { color: inherit; text-decoration: none; }
+.card h3 a:hover { text-decoration: underline; }
+.status { background: var(--raised); border-left: 3px solid var(--accent); padding: 7px 10px; font-size: 13.5px; border-radius: 0 6px 6px 0; margin-bottom: 10px; }
+.status b { font-weight: 600; }
+.next { border-left-color: var(--new); }
+.lab { font-size: 11px; font-weight: 700; letter-spacing: .06em; color: var(--muted); text-transform: uppercase; margin: 6px 0 2px; }
+.flist { list-style: none; padding: 0; margin: 0 0 8px; font-size: 13.5px; }
+.flist li { display: grid; grid-template-columns: 46px 1fr; gap: 8px; padding: 5px 0; border-top: 1px solid var(--rule); }
+.flist .d { color: var(--muted); font-variant-numeric: tabular-nums; }
+.card .ft { margin-top: auto; display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); padding-top: 8px; border-top: 1px solid var(--rule); }
+.stagebar { display: flex; gap: 3px; margin: 2px 0 10px; }
+.stagebar i { flex: 1; height: 4px; border-radius: 2px; background: var(--rule); }
+.stagebar i.on { background: var(--accent); }
+
+/* Feed */
+.filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.feed { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; }
+.fday { padding: 6px 16px; background: var(--raised); font-size: 13px; font-weight: 600; color: var(--muted); border-top: 1px solid var(--rule); }
+.fday:first-child { border-top: 0; border-radius: 10px 10px 0 0; }
+.frow { display: grid; grid-template-columns: 110px 140px 1fr; gap: 12px; padding: 10px 16px; border-top: 1px solid var(--rule); align-items: baseline; }
+.frow .t { font-family: var(--serif); font-size: 15.5px; line-height: 1.35; }
+.frow .s { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+/* Docket page */
+.dhead { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
+.facts { display: flex; gap: 8px 22px; flex-wrap: wrap; font-size: 14px; margin: 12px 0 16px; }
+.facts div span { color: var(--muted); margin-right: 6px; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.btn { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 7px; padding: 8px 14px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
+.btn.q { background: var(--surface); color: var(--accent); border: 1px solid var(--rule); font-weight: 500; }
+.note { font-size: 13px; color: var(--muted); max-width: 80ch; }
+.dgrid { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 32px; align-items: start; margin-top: 20px; }
+.side { position: sticky; top: 76px; background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 14px 16px; max-height: calc(100vh - 96px); overflow: auto; }
+.side h3 { font-family: var(--serif); font-size: 17px; margin: 0 0 8px; }
+.tl { list-style: none; margin: 0; padding: 0 0 0 14px; border-left: 2px solid var(--rule); }
+.tl li { position: relative; padding: 0 0 12px 10px; font-size: 14px; line-height: 1.35; }
+.tl li::before { content: ""; position: absolute; left: -21px; top: 5px; width: 10px; height: 10px; border-radius: 50%; background: var(--surface); border: 2px solid var(--accent); }
+.tl li.up::before { border-color: var(--new); background: var(--new); }
+.tl .dt { color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.tl .x { color: var(--muted); font-size: 12.5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.fbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.fbar input { flex: 1; min-width: 200px; background: var(--surface); border: 1px solid var(--rule); border-radius: 7px; padding: 7px 10px; }
+.fbar select { background: var(--surface); border: 1px solid var(--rule); border-radius: 7px; padding: 7px 8px; }
+.filing { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; display: grid; grid-template-columns: 92px 1fr; gap: 12px; }
+.filing.dpu { border-left: 3px solid var(--accent); }
+.filing .d { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 14px; }
+.filing .t { font-family: var(--serif); font-size: 15.5px; line-height: 1.35; }
+.filing .w { font-size: 13px; color: var(--muted); }
+.filing .files { font-size: 13px; margin-top: 4px; display: flex; flex-wrap: wrap; gap: 2px 14px; }
+.filing .files a { text-decoration: none; }
+.filing .files a:hover { text-decoration: underline; }
+
+/* All dockets */
+table.list { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+table.list th { text-align: left; font-size: 12px; color: var(--muted); font-weight: 600; padding: 8px 12px; background: var(--raised); }
+table.list td { padding: 9px 12px; border-top: 1px solid var(--rule); vertical-align: top; font-size: 14px; }
+table.list td.t { font-family: var(--serif); font-size: 15px; }
+.wrapx { overflow-x: auto; }
+.newslist { list-style: none; margin: 0; padding: 0; columns: 2 360px; column-gap: 28px; }
+.newslist li { break-inside: avoid; padding: 6px 0; border-top: 1px solid var(--rule); font-size: 14px; line-height: 1.35; }
+.banner { background: var(--surface); border: 1px solid var(--rule); border-left: 3px solid var(--new); border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 14px; }
+.empty { color: var(--muted); padding: 14px 16px; }
+.hide { display: none !important; }
+.star { background: none; border: 0; cursor: pointer; font-size: 20px; line-height: 1; color: var(--faint); padding: 0 2px; }
+.star.on { color: #D9A520; }
+.star:hover { color: #D9A520; }
+.starbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: -4px 0 12px; font-size: 13px; color: var(--muted); }
+footer { max-width: 1240px; margin: 0 auto; padding: 0 24px 40px; font-size: 12.5px; color: var(--faint); }
+
+@media (max-width: 860px) {
+  .topin { padding: 10px 14px; gap: 10px; }
+  main { padding: 16px 14px 60px; }
+  .cards { grid-template-columns: 1fr; }
+  .frow { grid-template-columns: 1fr; gap: 2px; }
+  .dgrid { grid-template-columns: 1fr; }
+  .side { position: static; max-height: none; }
+  .filing { grid-template-columns: 1fr; gap: 2px; }
+}
+</style>
+</head>
+<body>
+<header class="top"><div class="topin">
+  <a class="brand" href="#">DPU Monitor<span id="upd"></span></a>
+  <nav class="links" id="nav">
+    <a href="#" data-v="home">Overview</a>
+    <a href="#activity" data-v="activity">Activity</a>
+    <a href="#all" data-v="all">All dockets</a>
+  </nav>
+  <form class="search" id="sform" role="search"><input id="sq" type="search" placeholder="Search dockets: number, company, or topic (e.g. 26-62, GSEP, heat pump)" aria-label="Search dockets"></form>
+</div></header>
+<main id="main" tabindex="-1"><p class="muted">Loading…</p></main>
+<footer>Built from public records in the Massachusetts DPU File Room, refreshed automatically each morning. Stages are estimated from filing types. Not affiliated with the DPU; check the File Room for the official record.</footer>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const LOCAL = "http://127.0.0.1:8000/";
+const CATS = {order: "Order", notice: "Notice", memo: "Hearing officer", approval: "Approval", appeal: "Appeal / reconsideration", new: "New docket", dpu: "DPU"};
+const STAGES = ["Opened", "Discovery", "Hearings", "Briefs", "Order", "Closed"];
+const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const md = d => d ? `${MON[+d.slice(5,7)-1]} ${+d.slice(8,10)}` : "";
+const mdy = d => d ? `${md(d)}, ${d.slice(0,4)}` : "";
+const daysAgo = d => d ? Math.round((Date.now() - Date.parse(d + "T12:00:00")) / 864e5) : null;
+const ago = d => { const n = daysAgo(d); return n === null ? "" : n <= 0 ? "today" : n === 1 ? "yesterday" : `${n} days ago`; };
+const tab = (n, id) => `<a class="tab" href="#d/${id}">${esc(n)}</a>`;
+const cat = c => `<span class="cat ${c}">${esc(CATS[c] || c)}</span>`;
+
+// Starred dockets: saved only in this browser (localStorage), never sent anywhere.
+const STAR_KEY = "dpumonitor:starred";
+function getStars() { try { return JSON.parse(localStorage.getItem(STAR_KEY) || "[]").map(Number).filter(Boolean); } catch { return []; } }
+function setStars(a) { try { localStorage.setItem(STAR_KEY, JSON.stringify([...new Set(a)])); } catch {} }
+const isStar = id => getStars().includes(+id);
+function toggleStar(id) { const s = getStars(); setStars(s.includes(+id) ? s.filter(x => x !== +id) : [...s, +id]); }
+const starBtn = id => `<button class="star ${isStar(id) ? "on" : ""}" data-star="${id}" title="${isStar(id) ? "Remove from" : "Add to"} your starred dockets (saved in this browser only)" aria-label="Star docket" aria-pressed="${isStar(id)}">${isStar(id) ? "★" : "☆"}</button>`;
+function wireStars(root, after) {
+  (root || document).querySelectorAll("[data-star]").forEach(b => b.onclick = e => {
+    e.preventDefault(); e.stopPropagation();
+    toggleStar(b.dataset.star);
+    const on = isStar(b.dataset.star);
+    b.classList.toggle("on", on); b.textContent = on ? "★" : "☆"; b.setAttribute("aria-pressed", on);
+    if (after) after();
+  });
+}
+
+const D = {};
+async function j(path) { const r = await fetch(path, {cache: "no-cache"}); if (!r.ok) throw new Error(path + " " + r.status); return r.json(); }
+async function load() {
+  const [meta, dk, watch, feed, news, dates] = await Promise.all([
+    j("data/meta.json"), j("data/dockets.json"), j("data/watch.json").catch(() => []),
+    j("data/feed.json").catch(() => []), j("data/news.json").catch(() => []), j("data/dates.json").catch(() => [])]);
+  const cols = dk.cols;
+  D.meta = meta; D.watch = watch; D.feed = feed; D.news = news; D.dates = dates;
+  D.rows = dk.rows.map(r => Object.fromEntries(cols.map((c, i) => [c, r[i]])));
+  D.byId = new Map(D.rows.map(r => [r.id, r]));
+  D.short = new Map();
+  watch.forEach(g => g.dockets.forEach(c => { if (c.short && !D.short.has(c.row[0])) D.short.set(c.row[0], c.short); }));
+  $("#upd").textContent = meta.updated ? `updated ${md(meta.updated.slice(0,10))}, ${meta.updated.slice(11,16)}` : "";
+}
+
+function stageBar(s) {
+  const k = STAGES.indexOf(s);
+  return `<div class="stagebar" title="Estimated stage: ${esc(s)}">${STAGES.map((_, i) => `<i class="${i <= k ? "on" : ""}"></i>`).join("")}</div>`;
+}
+
+// ------------------------------------------------------------ overview
+function card(c) {
+  const r = Object.fromEntries(["id","number","title","petitioner","industry","type","opened","closed","last","filings","stage","last_dpu"].map((k, i) => [k, c.row[i]]));
+  const ld = r.last_dpu;
+  return `<article class="card">
+    <div class="hd"><span>${tab(r.number, r.id)} ${starBtn(r.id)}</span><div class="meta">${esc([r.industry, r.type].filter(Boolean).join(" · "))}<br>${r.closed ? "Closed " + mdy(r.closed) : esc(r.stage)}</div></div>
+    <h3><a href="#d/${r.id}">${esc(c.short || r.title)}</a></h3>
+    ${c.short ? `<div class="small muted" style="margin:-4px 0 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(r.title)}</div>` : ""}
+    ${stageBar(r.stage)}
+    ${ld ? `<div class="status"><b>Last DPU action:</b> ${esc(ld[1])}, ${md(ld[0])}${ld[2] ? ` — ${esc(ld[2].slice(0, 110))}${ld[2].length > 110 ? "…" : ""}` : ""}</div>` : ""}
+    ${(c.next || []).map(n => `<div class="status next"><b>Coming up:</b> ${mdy(n.date)} — ${esc(n.what)}</div>`).join("")}
+    <div class="lab">Latest filings</div>
+    <ul class="flist">${c.recent.map(f => `<li><span class="d">${md(f[0])}</span><span>${esc(f[1] || "Filing")} · ${esc(f[2])}</span></li>`).join("") || '<li><span></span><span class="muted">No filings yet</span></li>'}</ul>
+    <div class="ft"><span>${r.filings} filings · last ${ago(r.last)}</span><a href="#d/${r.id}">Full docket →</a></div>
+  </article>`;
+}
+
+function latestBlock() {
+  if (!D.feed.length) return '<p class="empty">No recent activity recorded yet.</p>';
+  const newest = D.feed[0].date;
+  const since = new Date(Date.now() - 864e5 * 1.6).toISOString().slice(0, 10);
+  const items = D.feed.filter(e => e.date >= (newest < since ? newest : since));
+  const label = newest < since ? `Most recent activity, ${mdy(newest)}` : "Since yesterday";
+  const order = ["order", "new", "appeal", "notice", "memo", "approval"];
+  const boxes = order.map(c => [c, items.filter(e => e.cat === c)]).filter(([, l]) => l.length);
+  return `<h2>${label} <small>${items.length} item${items.length === 1 ? "" : "s"}</small></h2>
+    <div class="latest">${boxes.map(([c, l]) => `<div class="lbox"><h3>${cat(c)}<span class="muted">${l.length}</span></h3><ul>
+      ${l.slice(0, 6).map(e => `<li>${tab(e.number, e.id)} ${esc(e.title.slice(0, 140))}${e.title.length > 140 ? "…" : ""}
+        <div class="small muted">${esc(e.filer)}${e.date !== newest ? " · " + md(e.date) : ""}</div></li>`).join("")}
+      </ul>${l.length > 6 ? `<a class="more" href="#activity/${c}">All ${l.length} →</a>` : ""}</div>`).join("") || '<p class="empty">Nothing yet today.</p>'}</div>`;
+}
+
+// Build a card for a starred docket from its detail file.
+async function starredCards() {
+  const ids = getStars().filter(id => D.byId.has(id));
+  const today = new Date().toISOString().slice(0, 10);
+  const details = await Promise.all(ids.map(id => j(`data/d/${id}.json`).catch(() => null)));
+  return ids.map((id, i) => {
+    const r = D.byId.get(id), d = details[i];
+    return {row: ["id","number","title","petitioner","industry","type","opened","closed","last","filings","stage","last_dpu"].map(k => r[k]),
+      short: D.short.get(id) || "", recent: d ? d.filings.slice(0, 5).map(f => [f[0], f[2], f[1], f[3]]) : [],
+      next: D.dates.filter(x => x.number === (r.number || "").toUpperCase() && x.date >= today).slice(0, 2)};
+  }).sort((a, b) => (b.row[8] || "").localeCompare(a.row[8] || ""));
+}
+
+let gsel = null;
+async function viewHome() {
+  const m = D.meta;
+  let h = "";
+  if (!m.seed_done) h += `<div class="banner"><b>Still building.</b> The first runs read the whole File Room a few thousand dockets at a time. ${m.dockets || 0} dockets so far; this finishes on its own within about a day.</div>`;
+  if (D.news.length) h += `<h2 style="margin-top:6px">In the news <small>headlines and links only</small></h2>
+    <div class="lbox"><ul class="newslist">${D.news.slice(0, 6).map(n =>
+      `<li><a href="${esc(n.link)}" target="_blank" rel="noopener">${esc(n.title)}</a> <span class="small muted">${esc(n.source)} · ${md(n.date)}</span></li>`).join("")}</ul>
+      ${D.news.length > 6 ? `<details><summary class="small" style="cursor:pointer;margin-top:6px">${D.news.length - 6} more</summary><ul class="newslist">${D.news.slice(6, 40).map(n =>
+        `<li><a href="${esc(n.link)}" target="_blank" rel="noopener">${esc(n.title)}</a> <span class="small muted">${esc(n.source)} · ${md(n.date)}</span></li>`).join("")}</ul></details>` : ""}</div>`;
+  h += latestBlock();
+  const stars = getStars();
+  if (gsel === null) gsel = stars.length ? -1 : 0;
+  if (gsel >= D.watch.length) gsel = 0;
+  const groupCards = gsel === -1 ? await starredCards() : (D.watch[gsel] ? D.watch[gsel].dockets : []);
+  h += `<h2>Watchlist</h2>
+    <div class="groups"><button class="chip ${gsel === -1 ? "on" : ""}" data-g="-1">★ Starred<span class="n">${stars.length}</span></button>
+      ${D.watch.map((g, i) => `<button class="chip ${i === gsel ? "on" : ""}" data-g="${i}">${esc(g.name)}<span class="n">${g.dockets.length}</span></button>`).join("")}</div>
+    ${gsel === -1 ? `<div class="starbar">Your starred dockets are saved in this browser only. Nobody else can see them.
+      ${stars.length ? '<button class="btn q" id="moveStars" style="padding:3px 10px;font-size:13px">Move to another device</button><span id="moved"></span>' : ""}</div>` : ""}
+    <div class="cards" id="cards">${groupCards.map(card).join("") ||
+      (gsel === -1 ? '<p class="empty">No starred dockets yet. Click the ☆ next to any docket number to add it here.</p>' : '<p class="empty">No dockets match this group yet.</p>')}</div>`;
+  const recentFeed = D.feed.filter(e => e.cat !== "new").slice(0, 25);
+  h += `<h2>DPU activity <small>orders, notices, hearing officer memos, approvals, appeals · <a href="#activity">see all</a></small></h2>${feedList(recentFeed)}`;
+  const nd = D.feed.filter(e => e.cat === "new").slice(0, 12);
+  if (nd.length) h += `<h2>New dockets <small><a href="#activity/new">see all</a></small></h2>${feedList(nd)}`;
+  $("#main").innerHTML = h;
+  document.querySelectorAll("[data-g]").forEach(b => b.onclick = () => { gsel = +b.dataset.g; viewHome(); });
+  wireStars($("#main"), () => { if (gsel === -1) viewHome(); });
+  if ($("#moveStars")) $("#moveStars").onclick = async () => {
+    const link = location.href.split("#")[0] + "#import/" + getStars().join(",");
+    try { await navigator.clipboard.writeText(link); $("#moved").textContent = "Link copied. Open it on the other device to add these stars there. Anyone with the link could see the list, so send it only to yourself."; }
+    catch { prompt("Copy this link and open it on the other device:", link); }
+  };
+}
+
+function viewImport(list) {
+  const ids = (list || "").split(",").map(Number).filter(id => D.byId.has(id));
+  $("#main").innerHTML = `<h1>Add starred dockets</h1>
+    <p>This link adds ${ids.length} docket${ids.length === 1 ? "" : "s"} to the starred list in this browser:</p>
+    <p>${ids.map(id => tab(D.byId.get(id).number, id)).join(" ")}</p>
+    <div class="actions"><button class="btn" id="imp">Add to my starred dockets</button><a class="btn q" href="#">Cancel</a></div>`;
+  $("#imp").onclick = () => { setStars([...getStars(), ...ids]); gsel = -1; location.hash = ""; };
+}
+
+function feedList(list) {
+  if (!list.length) return '<div class="feed"><p class="empty">Nothing in this period.</p></div>';
+  let out = "", day = "";
+  for (const e of list) {
+    if (e.date !== day) { day = e.date; out += `<div class="fday">${mdy(day)} · ${ago(day)}</div>`; }
+    const r = D.byId.get(e.id);
+    out += `<div class="frow"><div>${tab(e.number, e.id)}</div><div>${cat(e.cat)}</div><div>
+      <div class="t">${e.file ? `<a href="${esc(e.file[1])}" target="_blank" rel="noopener">${esc(e.title)}</a>` : esc(e.title)}</div>
+      <div class="s">${esc(e.cat === "new" ? (e.filer || "") : `${e.type}${e.filer ? " · " + e.filer : ""}`)}${r && e.cat !== "new" ? " — " + esc(r.title.slice(0, 120)) + (r.title.length > 120 ? "…" : "") : ""}</div></div></div>`;
+  }
+  return `<div class="feed">${out}</div>`;
+}
+
+function viewActivity(c) {
+  const sel = c || "";
+  const stars = new Set(getStars());
+  const list = D.feed.filter(e => !sel || (sel === "starred" ? stars.has(e.id) : e.cat === sel));
+  $("#main").innerHTML = `<h1>DPU activity</h1><p class="muted">The last 45 days, newest first. Party filings like comments and discovery appear on each docket's page.</p>
+    <div class="filters"><a class="chip ${sel ? "" : "on"}" href="#activity" style="text-decoration:none">All</a>
+    <a class="chip ${sel === "starred" ? "on" : ""}" href="#activity/starred" style="text-decoration:none">★ Starred<span class="n">${D.feed.filter(e => stars.has(e.id)).length}</span></a>
+    ${Object.keys(CATS).filter(k => k !== "dpu").map(k => `<a class="chip ${sel === k ? "on" : ""}" href="#activity/${k}" style="text-decoration:none">${esc(CATS[k])}<span class="n">${D.feed.filter(e => e.cat === k).length}</span></a>`).join("")}</div>
+    ${feedList(list.slice(0, 600))}`;
+}
+
+// ------------------------------------------------------------ all dockets
+function viewAll(q) {
+  q = q || "";
+  $("#main").innerHTML = `<h1>All dockets</h1>
+    <div class="fbar"><input id="aq" value="${esc(q)}" placeholder="Number, company, or topic">
+      <select id="aind"><option value="">All industries</option>${[...new Set(D.rows.map(r => r.industry).filter(Boolean))].sort().map(x => `<option>${esc(x)}</option>`).join("")}</select>
+      <select id="aopen"><option value="">Open and closed</option><option value="open">Open only</option></select>
+      <select id="asort"><option value="last">Latest activity</option><option value="opened">Newest opened</option></select></div>
+    <p class="small muted" id="acnt"></p><div class="wrapx" id="ares"></div>`;
+  const run = () => {
+    const terms = $("#aq").value.toLowerCase().split(/\s+/).filter(Boolean);
+    const ind = $("#aind").value, open = $("#aopen").value === "open", key = $("#asort").value;
+    let rows = D.rows.filter(r => (!ind || r.industry === ind) && (!open || !r.closed) &&
+      terms.every(t => `${r.number} ${r.title} ${r.petitioner} ${r.type}`.toLowerCase().includes(t)));
+    rows.sort((a, b) => (b[key] || "").localeCompare(a[key] || ""));
+    $("#acnt").textContent = `${rows.length.toLocaleString()} dockets${rows.length > 300 ? ", showing the first 300" : ""}`;
+    $("#ares").innerHTML = `<table class="list"><thead><tr><th></th><th>Docket</th><th>Title</th><th>Stage</th><th>Last activity</th></tr></thead><tbody>
+      ${rows.slice(0, 300).map(r => `<tr><td>${starBtn(r.id)}</td><td>${tab(r.number, r.id)}</td><td class="t"><a href="#d/${r.id}" style="color:inherit;text-decoration:none">${esc(r.title.slice(0, 200))}</a>
+        <div class="small muted">${esc(r.petitioner)}${r.industry ? " · " + esc(r.industry) : ""}</div></td>
+        <td class="small">${esc(r.stage)}</td><td class="small">${r.last ? mdy(r.last) : ""}</td></tr>`).join("")}</tbody></table>`;
+    wireStars($("#ares"));
+  };
+  ["aq", "aind", "aopen", "asort"].forEach(id => $("#" + id).addEventListener("input", run));
+  run();
+}
+
+// ------------------------------------------------------------ docket page
+async function viewDocket(id) {
+  $("#main").innerHTML = '<p class="muted">Loading docket…</p>';
+  let d;
+  try { d = await j(`data/d/${id}.json`); } catch { $("#main").innerHTML = '<p>This docket is not in the monitor yet.</p>'; return; }
+  const today = new Date().toISOString().slice(0, 10);
+  const up = D.dates.filter(x => x.number === d.number.toUpperCase() && x.date >= today);
+  const nFiles = d.filings.reduce((n, f) => n + f[4].length, 0);
+  const types = [...new Set(d.filings.map(f => f[2]).filter(Boolean))].sort();
+  $("#main").innerHTML = `
+    <div class="dhead"><span><span class="tab big">${esc(d.number)}</span> ${starBtn(d.id)}</span><div style="flex:1;min-width:260px">
+      <h1>${esc(d.title)}</h1><div class="muted">${esc(d.petitioner)}</div></div></div>
+    <div class="facts">
+      <div><span>Stage (est.)</span>${esc(d.stage)}</div>
+      <div><span>Opened</span>${mdy(d.opened) || "—"}</div>
+      <div><span>Closed</span>${d.closed ? mdy(d.closed) : "Open"}</div>
+      ${d.industry ? `<div><span>Industry</span>${esc(d.industry)}</div>` : ""}
+      ${d.type ? `<div><span>Type</span>${esc(d.type)}</div>` : ""}
+      ${d.hearing_officer ? `<div><span>Hearing officer</span>${esc(d.hearing_officer)}</div>` : ""}
+      <div><span>Filings</span>${d.filings.length} (${nFiles} files)</div>
+    </div>
+    ${stageBar(d.stage)}
+    <div class="actions">
+      <a class="btn" href="${LOCAL}#get/${d.id}" target="_blank" rel="noopener">Download all files</a>
+      <button class="btn q" id="links">Save list of file links</button>
+      <a class="btn q" href="${esc(d.fileroom)}" target="_blank" rel="noopener">Open in the File Room</a>
+    </div>
+    <p class="note">"Download all files" works on the laptop where your DPU mirror is installed: it opens the mirror, which downloads every file into C:\\File Room and makes them searchable and ready to export for Claude. Start the mirror first (start_dashboard.bat). On other devices, use the file links below.</p>
+    ${d.related && d.related.length ? `<p class="small">Related dockets: ${d.related.map(n => { const r = D.rows.find(x => x.number === n); return r ? tab(n, r.id) : esc(n); }).join(" ")}</p>` : ""}
+    <div class="dgrid">
+      <aside class="side"><h3>Key dates</h3><ul class="tl">
+        ${up.map(x => `<li class="up"><div class="dt">${mdy(x.date)} · upcoming</div>${esc(x.what)}</li>`).join("")}
+        ${d.milestones.slice().reverse().map(x => `<li><div class="dt">${mdy(x.date)}</div>${esc(x.label)}${x.detail ? `<div class="x">${/^through \d{4}-\d\d-\d\d$/.test(x.detail) ? "through " + mdy(x.detail.slice(8)) : esc(x.detail)}</div>` : ""}</li>`).join("") || '<li>No milestones found.</li>'}
+      </ul></aside>
+      <section>
+        <div class="fbar"><input id="ff" placeholder="Filter filings by title, filer, or file name">
+          <select id="ft"><option value="">All filing types</option><option value="__dpu">DPU actions only</option>${types.map(t => `<option>${esc(t)}</option>`).join("")}</select></div>
+        <p class="small muted" id="fc"></p><div id="fl"></div>
+      </section>
+    </div>`;
+  const render = () => {
+    const t = $("#ff").value.toLowerCase(), ty = $("#ft").value;
+    const list = d.filings.filter(f => (!ty || (ty === "__dpu" ? f[5] && f[5] !== "appeal" : f[2] === ty)) &&
+      (!t || `${f[1]} ${f[2]} ${f[3]} ${f[4].map(x => x[0]).join(" ")}`.toLowerCase().includes(t)));
+    $("#fc").textContent = `${list.length} of ${d.filings.length} filings`;
+    $("#fl").innerHTML = list.slice(0, 500).map(f => `<div class="filing ${f[5] && f[5] !== "appeal" ? "dpu" : ""}">
+      <div class="d">${mdy(f[0])}</div><div>
+      <div class="t">${esc(f[3] || f[2])}</div>
+      <div class="w">${f[5] ? cat(f[5]) + " · " : ""}${esc(f[2])}${f[1] ? " · " + esc(f[1]) : ""}</div>
+      <div class="files">${f[4].map(x => `<a href="${esc(x[1])}" target="_blank" rel="noopener">${esc(x[0])}</a>`).join("")}</div></div></div>`).join("")
+      + (list.length > 500 ? '<p class="small muted">Showing the first 500. Use the filter to narrow.</p>' : "");
+  };
+  $("#ff").oninput = render; $("#ft").onchange = render; render();
+  wireStars($(".dhead"));
+  $("#links").onclick = () => {
+    const lines = [`D.P.U. ${d.number}: ${d.title}`, `File links as of ${D.meta.updated || ""}`, ""];
+    d.filings.forEach(f => f[4].forEach(x => lines.push(`${f[0]}\t${f[2]}\t${f[1]}\t${x[0]}\t${x[1]}`)));
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([lines.join("\r\n")], {type: "text/plain"}));
+    a.download = `DPU_${d.number.replace(/[^\w-]+/g, "_")}_file_links.txt`;
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  };
+}
+
+// ------------------------------------------------------------ router
+async function route() {
+  const h = decodeURIComponent(location.hash.slice(1));
+  const [v, ...rest] = h.split("/");
+  document.querySelectorAll("#nav a").forEach(a => a.classList.toggle("on", a.dataset.v === (v || "home")));
+  if (v === "d") await viewDocket(rest[0]);
+  else if (v === "activity") viewActivity(rest[0]);
+  else if (v === "import") viewImport(rest[0]);
+  else if (v === "all") viewAll(rest.join("/"));
+  else await viewHome();
+  $("#main").focus({preventScroll: true}); window.scrollTo(0, 0);
+}
+$("#sform").onsubmit = e => { e.preventDefault(); location.hash = "#all/" + encodeURIComponent($("#sq").value.trim()); };
+window.addEventListener("hashchange", route);
+load().then(route).catch(e => { $("#main").innerHTML = `<p>The data is not available yet. If the monitor was just set up, the first update may still be running. (${esc(e.message)})</p>`; });
+</script>
+</body>
+</html>
